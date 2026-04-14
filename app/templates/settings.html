@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Settings — Concord AI{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-gray-800 mb-6">Settings</h1>
+
+<!-- QuickBooks Connection -->
+<div class="bg-white rounded-xl shadow p-6 max-w-lg mb-6">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">QuickBooks</h2>
+
+    {% if qb_connected %}
+    <div class="flex items-center justify-between">
+        <div>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mb-2">Connected</span>
+            {% if qb_company %}
+            <p class="text-sm text-gray-600">Company: <strong>{{ qb_company }}</strong></p>
+            {% endif %}
+        </div>
+        <form action="/qb/disconnect" method="POST">
+            <button type="submit" class="text-red-500 hover:text-red-700 text-sm">Disconnect</button>
+        </form>
+    </div>
+    <p class="text-xs text-gray-400 mt-3">Invoices and expenses are automatically synced to QuickBooks.</p>
+    {% else %}
+    <p class="text-sm text-gray-600 mb-4">Connect QuickBooks to automatically sync invoices and expenses.</p>
+    <a href="/qb/connect" class="inline-block bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium">
+        Connect to QuickBooks
+    </a>
+    {% endif %}
+</div>
+
+<!-- Dashboard Login Info -->
+<div class="bg-white rounded-xl shadow p-6 max-w-lg">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Dashboard Access</h2>
+    <p class="text-sm text-gray-600">Username: <strong>{{ username }}</strong></p>
+    <p class="text-sm text-gray-600">Password: <strong>****</strong></p>
+    <p class="text-xs text-gray-400 mt-2">To change these, update the DASHBOARD_USERNAME and DASHBOARD_PASSWORD environment variables on Railway.</p>
+</div>
+{% endblock %}

@@ -124,6 +124,24 @@ def generate_invoice(client_id):
     db.session.add(invoice)
     db.session.commit()
 
+    # Sync invoice to QuickBooks if connected
+    try:
+        from app.quickbooks import is_connected, create_qb_invoice
+        if is_connected():
+            line_items = [
+                {"description": f"Monthly AI Receptionist Service — {billing['month_start'].strftime('%B %Y')}", "amount": billing["base_fee_cents"] / 100},
+            ]
+            if billing["overage_amount_cents"] > 0:
+                line_items.append({
+                    "description": f"Overage: {billing['overage_minutes']} minutes @ ${client.overage_rate_cents / 100:.2f}/min",
+                    "amount": billing["overage_amount_cents"] / 100,
+                })
+            qb_id = create_qb_invoice(client.name, client.email, line_items)
+            if qb_id:
+                flash("Invoice synced to QuickBooks!", "success")
+    except Exception:
+        pass  # Don't let QB issues block the invoice
+
     # Send invoice email if we have a payment URL
     if invoice.stripe_payment_url:
         try:

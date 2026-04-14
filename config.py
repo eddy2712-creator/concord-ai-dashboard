@@ -28,5 +28,11 @@ class Config:
     TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
     TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 
+    # QuickBooks
+    QB_CLIENT_ID = os.getenv("QB_CLIENT_ID")
+    QB_CLIENT_SECRET = os.getenv("QB_CLIENT_SECRET")
+    QB_REDIRECT_URI = os.getenv("QB_REDIRECT_URI", "http://localhost:5000/qb/callback")
+    QB_ENVIRONMENT = os.getenv("QB_ENVIRONMENT", "sandbox")
+
     # API key for agent apps to send data
     API_KEY = os.getenv("API_KEY", "change-me")

@@ -207,6 +207,22 @@ def delete_platform_cost(cost_id):
     return redirect(url_for("dashboard.platform_costs_page"))
 
 
+@dashboard_bp.route("/dashboard/settings")
+@require_auth
+def settings_page():
+    from app.quickbooks import is_connected, get_qb_company_info
+    qb_connected = is_connected()
+    qb_company = None
+    if qb_connected:
+        info = get_qb_company_info()
+        if info:
+            qb_company = info.get("CompanyName", "Connected")
+    return render_template("settings.html",
+                           qb_connected=qb_connected,
+                           qb_company=qb_company,
+                           username=current_app.config["DASHBOARD_USERNAME"])
+
+
 @dashboard_bp.route("/dashboard/invoices")
 @require_auth
 def invoices():

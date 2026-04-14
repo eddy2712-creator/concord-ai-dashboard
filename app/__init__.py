@@ -21,9 +21,11 @@ def create_app():
     from app.api import api_bp
     from app.dashboard import dashboard_bp
     from app.billing import billing_bp
+    from app.quickbooks import qb_bp
 
     app.register_blueprint(api_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(billing_bp)
+    app.register_blueprint(qb_bp)
 
     return app

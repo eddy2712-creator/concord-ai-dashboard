@@ -58,6 +58,17 @@ class PlatformCost(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 
+class QBToken(db.Model):
+    __tablename__ = "qb_tokens"
+
+    id = db.Column(db.Integer, primary_key=True)
+    access_token = db.Column(db.Text, nullable=False)
+    refresh_token = db.Column(db.Text, nullable=False)
+    realm_id = db.Column(db.String(200), nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+
 class Invoice(db.Model):
     __tablename__ = "invoices"
 
