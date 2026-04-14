@@ -4,6 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from sqlalchemy import func
 from app import db
 from app.models import Client, AgentMapping, Call, Invoice
+from app.twilio_service import get_twilio_costs
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -69,11 +70,19 @@ def overview():
         percent_used = (total_minutes / threshold * 100) if threshold > 0 else 0
         is_over = total_minutes > threshold if threshold > 0 else False
 
+        # Get Twilio costs for this client
+        twilio = get_twilio_costs(client.twilio_phone_number, month_start, month_end)
+        retell_cost_cents = total_cost_cents
+        twilio_cost_cents = twilio["total_cents"]
+        combined_cost_cents = retell_cost_cents + twilio_cost_cents
+
         client_stats.append({
             "client": client,
             "call_count": call_count,
             "total_minutes": round(total_minutes, 1),
-            "total_cost_dollars": total_cost_cents / 100,
+            "retell_cost_dollars": retell_cost_cents / 100,
+            "twilio_cost_dollars": twilio_cost_cents / 100,
+            "total_cost_dollars": combined_cost_cents / 100,
             "percent_used": round(percent_used, 1),
             "is_over": is_over,
         })
@@ -103,13 +112,17 @@ def client_detail(client_id):
     agents = AgentMapping.query.filter_by(client_id=client.id).all()
     invoices = Invoice.query.filter_by(client_id=client.id).order_by(Invoice.created_at.desc()).limit(12).all()
 
+    twilio = get_twilio_costs(client.twilio_phone_number, month_start, month_end)
+
     return render_template("client_detail.html",
                            client=client,
                            calls=calls,
                            agents=agents,
                            invoices=invoices,
                            total_minutes=round(total_minutes, 1),
-                           total_cost_dollars=total_cost_cents / 100,
+                           retell_cost_dollars=total_cost_cents / 100,
+                           twilio_cost_dollars=twilio["total_cents"] / 100,
+                           total_cost_dollars=(total_cost_cents + twilio["total_cents"]) / 100,
                            month=month_start.strftime("%B %Y"))
 
 
@@ -122,6 +135,7 @@ def add_client():
         monthly_fee = int(float(request.form.get("monthly_fee", 0)) * 100)
         threshold = int(request.form.get("threshold_minutes", 0))
         overage_rate = int(float(request.form.get("overage_rate", 0.10)) * 100)
+        twilio_phone = request.form.get("twilio_phone_number", "").strip()
         agent_id = request.form.get("retell_agent_id", "").strip()
         agent_label = request.form.get("agent_label", "").strip()
 
@@ -131,6 +145,7 @@ def add_client():
             monthly_fee_cents=monthly_fee,
             overage_threshold_minutes=threshold,
             overage_rate_cents=overage_rate,
+            twilio_phone_number=twilio_phone or None,
         )
         db.session.add(client)
         db.session.flush()

@@ -16,7 +16,9 @@
                 <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Client</th>
                 <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Calls</th>
                 <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Minutes</th>
-                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Cost</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Retell</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Twilio</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Total Cost</th>
                 <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Usage</th>
                 <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
             </tr>
@@ -30,7 +32,9 @@
                 </td>
                 <td class="px-6 py-4 text-gray-700">{{ stat.call_count }}</td>
                 <td class="px-6 py-4 text-gray-700">{{ stat.total_minutes }} min</td>
-                <td class="px-6 py-4 text-gray-700">${{ "%.2f"|format(stat.total_cost_dollars) }}</td>
+                <td class="px-6 py-4 text-gray-700">${{ "%.2f"|format(stat.retell_cost_dollars) }}</td>
+                <td class="px-6 py-4 text-gray-700">${{ "%.2f"|format(stat.twilio_cost_dollars) }}</td>
+                <td class="px-6 py-4 font-medium text-gray-900">${{ "%.2f"|format(stat.total_cost_dollars) }}</td>
                 <td class="px-6 py-4">
                     <div class="w-full bg-gray-200 rounded-full h-2.5">
                         <div class="h-2.5 rounded-full {% if stat.is_over %}bg-red-500{% elif stat.percent_used > 80 %}bg-yellow-500{% else %}bg-green-500{% endif %}"

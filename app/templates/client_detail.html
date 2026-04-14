@@ -13,7 +13,7 @@
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
     <div class="bg-white rounded-xl shadow p-5">
         <div class="text-sm text-gray-500">This Month's Minutes</div>
         <div class="text-2xl font-bold text-gray-800">{{ total_minutes }} min</div>
@@ -22,8 +22,19 @@
         {% endif %}
     </div>
     <div class="bg-white rounded-xl shadow p-5">
-        <div class="text-sm text-gray-500">This Month's Cost</div>
-        <div class="text-2xl font-bold text-gray-800">${{ "%.2f"|format(total_cost_dollars) }}</div>
+        <div class="text-sm text-gray-500">Retell Cost</div>
+        <div class="text-2xl font-bold text-gray-800">${{ "%.2f"|format(retell_cost_dollars) }}</div>
+        <div class="text-xs text-gray-400">AI call processing</div>
+    </div>
+    <div class="bg-white rounded-xl shadow p-5">
+        <div class="text-sm text-gray-500">Twilio Cost</div>
+        <div class="text-2xl font-bold text-gray-800">${{ "%.2f"|format(twilio_cost_dollars) }}</div>
+        <div class="text-xs text-gray-400">Phone number + usage</div>
+    </div>
+    <div class="bg-white rounded-xl shadow p-5">
+        <div class="text-sm text-gray-500">Total Cost</div>
+        <div class="text-2xl font-bold text-indigo-600">${{ "%.2f"|format(total_cost_dollars) }}</div>
+        <div class="text-xs text-gray-400">Retell + Twilio combined</div>
     </div>
     <div class="bg-white rounded-xl shadow p-5">
         <div class="text-sm text-gray-500">Monthly Fee</div>

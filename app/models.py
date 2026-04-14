@@ -11,6 +11,7 @@ class Client(db.Model):
     monthly_fee_cents = db.Column(db.Integer, default=0)
     overage_threshold_minutes = db.Column(db.Integer, default=0)
     overage_rate_cents = db.Column(db.Integer, default=10)
+    twilio_phone_number = db.Column(db.String(50), nullable=True)
     stripe_customer_id = db.Column(db.String(200), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

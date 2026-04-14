@@ -24,5 +24,9 @@ class Config:
     # Default cost per minute in cents (Retell ~$0.08/min)
     DEFAULT_COST_PER_MIN_CENTS = int(os.getenv("DEFAULT_COST_PER_MIN_CENTS", "8"))
 
+    # Twilio
+    TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+    TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+
     # API key for agent apps to send data
     API_KEY = os.getenv("API_KEY", "change-me")

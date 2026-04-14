@@ -4,5 +4,6 @@ flask-migrate
 psycopg2-binary
 stripe
 resend
+requests
 python-dotenv
 gunicorn
