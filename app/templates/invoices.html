@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Invoices — Concord AI{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-gray-800 mb-6">All Invoices</h1>
+
+{% if invoices %}
+<div class="bg-white rounded-xl shadow overflow-hidden">
+    <table class="w-full">
+        <thead class="bg-gray-50 border-b">
+            <tr>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Client</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Period</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Minutes</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Base Fee</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Overage</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Total</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Link</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for inv in invoices %}
+            <tr>
+                <td class="px-6 py-3 text-gray-700">{{ inv.client.name }}</td>
+                <td class="px-6 py-3 text-gray-700">{{ inv.billing_period_start.strftime('%B %Y') }}</td>
+                <td class="px-6 py-3 text-gray-700">{{ inv.total_minutes }} min</td>
+                <td class="px-6 py-3 text-gray-700">${{ "%.2f"|format(inv.base_fee_cents / 100) }}</td>
+                <td class="px-6 py-3 text-gray-700">${{ "%.2f"|format(inv.overage_amount_cents / 100) }}</td>
+                <td class="px-6 py-3 font-medium text-gray-900">${{ "%.2f"|format(inv.total_cents / 100) }}</td>
+                <td class="px-6 py-3">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if inv.status == 'paid' %}bg-green-100 text-green-800
+                        {% elif inv.status == 'sent' %}bg-blue-100 text-blue-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ inv.status | capitalize }}
+                    </span>
+                </td>
+                <td class="px-6 py-3">
+                    {% if inv.stripe_payment_url %}
+                    <a href="{{ inv.stripe_payment_url }}" target="_blank" class="text-indigo-600 hover:text-indigo-800 text-sm">View</a>
+                    {% else %}
+                    <span class="text-gray-400 text-sm">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="bg-white rounded-xl shadow p-12 text-center text-gray-500">
+    No invoices generated yet.
+</div>
+{% endif %}
+{% endblock %}

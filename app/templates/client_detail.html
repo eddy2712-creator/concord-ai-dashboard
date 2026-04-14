@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}{{ client.name }} — Concord AI{% endblock %}
+
+{% block content %}
+<a href="/dashboard" class="text-indigo-600 hover:text-indigo-800 text-sm mb-4 inline-block">&larr; Back to Clients</a>
+
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">{{ client.name }}</h1>
+    <form action="/dashboard/generate-invoice/{{ client.id }}" method="POST" class="inline">
+        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm">Generate Invoice</button>
+    </form>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-xl shadow p-5">
+        <div class="text-sm text-gray-500">This Month's Minutes</div>
+        <div class="text-2xl font-bold text-gray-800">{{ total_minutes }} min</div>
+        {% if client.overage_threshold_minutes > 0 %}
+        <div class="text-xs text-gray-400">of {{ client.overage_threshold_minutes }} min included</div>
+        {% endif %}
+    </div>
+    <div class="bg-white rounded-xl shadow p-5">
+        <div class="text-sm text-gray-500">This Month's Cost</div>
+        <div class="text-2xl font-bold text-gray-800">${{ "%.2f"|format(total_cost_dollars) }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow p-5">
+        <div class="text-sm text-gray-500">Monthly Fee</div>
+        <div class="text-2xl font-bold text-gray-800">${{ "%.2f"|format(client.monthly_fee_cents / 100) }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow p-5">
+        <div class="text-sm text-gray-500">Overage Rate</div>
+        <div class="text-2xl font-bold text-gray-800">${{ "%.2f"|format(client.overage_rate_cents / 100) }}/min</div>
+    </div>
+</div>
+
+<!-- Agents -->
+{% if agents %}
+<div class="mb-8">
+    <h2 class="text-lg font-semibold text-gray-800 mb-3">Retell Agents</h2>
+    <div class="flex gap-2 flex-wrap">
+        {% for agent in agents %}
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-indigo-100 text-indigo-800">
+            {{ agent.label or agent.retell_agent_id }}
+        </span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Invoices -->
+{% if invoices %}
+<div class="mb-8">
+    <h2 class="text-lg font-semibold text-gray-800 mb-3">Recent Invoices</h2>
+    <div class="bg-white rounded-xl shadow overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50 border-b">
+                <tr>
+                    <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Period</th>
+                    <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Total</th>
+                    <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
+                    <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Link</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for inv in invoices %}
+                <tr>
+                    <td class="px-6 py-3 text-gray-700">{{ inv.billing_period_start.strftime('%B %Y') }}</td>
+                    <td class="px-6 py-3 text-gray-700">${{ "%.2f"|format(inv.total_cents / 100) }}</td>
+                    <td class="px-6 py-3">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if inv.status == 'paid' %}bg-green-100 text-green-800
+                            {% elif inv.status == 'sent' %}bg-blue-100 text-blue-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ inv.status | capitalize }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-3">
+                        {% if inv.stripe_payment_url %}
+                        <a href="{{ inv.stripe_payment_url }}" target="_blank" class="text-indigo-600 hover:text-indigo-800 text-sm">View Invoice</a>
+                        {% else %}
+                        <span class="text-gray-400 text-sm">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Calls -->
+<h2 class="text-lg font-semibold text-gray-800 mb-3">Recent Calls</h2>
+{% if calls %}
+<div class="bg-white rounded-xl shadow overflow-hidden">
+    <table class="w-full">
+        <thead class="bg-gray-50 border-b">
+            <tr>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Date</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Caller</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Duration</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Type</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Sentiment</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Summary</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for call in calls %}
+            <tr>
+                <td class="px-6 py-3 text-sm text-gray-700">{{ call.created_at.strftime('%b %d, %H:%M') }}</td>
+                <td class="px-6 py-3 text-sm text-gray-700">{{ call.from_number }}</td>
+                <td class="px-6 py-3 text-sm text-gray-700">{{ (call.duration_ms / 1000) | int }}s</td>
+                <td class="px-6 py-3">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700">{{ call.support_type or '—' }}</span>
+                </td>
+                <td class="px-6 py-3">
+                    <span class="text-sm {% if call.user_sentiment == 'Positive' %}text-green-600{% elif call.user_sentiment == 'Negative' %}text-red-600{% else %}text-gray-600{% endif %}">
+                        {{ call.user_sentiment or '—' }}
+                    </span>
+                </td>
+                <td class="px-6 py-3 text-sm text-gray-600 max-w-xs truncate">{{ call.call_summary or '—' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="bg-white rounded-xl shadow p-8 text-center text-gray-500">
+    No calls recorded yet for this client.
+</div>
+{% endif %}
+{% endblock %}
