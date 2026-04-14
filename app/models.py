@@ -48,6 +48,16 @@ class Call(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 
+class PlatformCost(db.Model):
+    __tablename__ = "platform_costs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    monthly_cost_cents = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+
 class Invoice(db.Model):
     __tablename__ = "invoices"
 

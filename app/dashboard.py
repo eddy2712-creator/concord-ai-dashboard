@@ -3,7 +3,7 @@ from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, flash, Response, current_app
 from sqlalchemy import func
 from app import db
-from app.models import Client, AgentMapping, Call, Invoice
+from app.models import Client, AgentMapping, Call, Invoice, PlatformCost
 from app.twilio_service import get_twilio_costs
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -53,6 +53,12 @@ def overview():
     clients = Client.query.filter_by(is_active=True).all()
     month_start, month_end = get_month_range()
 
+    # Calculate platform costs split across active clients
+    platform_costs = PlatformCost.query.filter_by(is_active=True).all()
+    total_platform_cents = sum(p.monthly_cost_cents for p in platform_costs)
+    num_clients = len(clients) if clients else 1
+    platform_per_client_cents = total_platform_cents // num_clients if num_clients > 0 else 0
+
     client_stats = []
     for client in clients:
         # Get this month's calls
@@ -74,7 +80,7 @@ def overview():
         twilio = get_twilio_costs(client.twilio_phone_number, month_start, month_end)
         retell_cost_cents = total_cost_cents
         twilio_cost_cents = twilio["total_cents"]
-        combined_cost_cents = retell_cost_cents + twilio_cost_cents
+        combined_cost_cents = retell_cost_cents + twilio_cost_cents + platform_per_client_cents
 
         client_stats.append({
             "client": client,
@@ -82,6 +88,7 @@ def overview():
             "total_minutes": round(total_minutes, 1),
             "retell_cost_dollars": retell_cost_cents / 100,
             "twilio_cost_dollars": twilio_cost_cents / 100,
+            "platform_cost_dollars": platform_per_client_cents / 100,
             "total_cost_dollars": combined_cost_cents / 100,
             "percent_used": round(percent_used, 1),
             "is_over": is_over,
@@ -89,6 +96,8 @@ def overview():
 
     return render_template("dashboard.html",
                            client_stats=client_stats,
+                           platform_costs=platform_costs,
+                           total_platform_dollars=total_platform_cents / 100,
                            month=month_start.strftime("%B %Y"))
 
 
@@ -163,6 +172,39 @@ def add_client():
         return redirect(url_for("dashboard.overview"))
 
     return render_template("add_client.html")
+
+
+@dashboard_bp.route("/dashboard/platform-costs", methods=["GET", "POST"])
+@require_auth
+def platform_costs_page():
+    if request.method == "POST":
+        name = request.form["name"].strip()
+        cost = int(float(request.form.get("monthly_cost", 0)) * 100)
+        if name:
+            pc = PlatformCost(name=name, monthly_cost_cents=cost)
+            db.session.add(pc)
+            db.session.commit()
+            flash(f"Added '{name}' — ${cost / 100:.2f}/month", "success")
+        return redirect(url_for("dashboard.platform_costs_page"))
+
+    costs = PlatformCost.query.filter_by(is_active=True).all()
+    total_cents = sum(c.monthly_cost_cents for c in costs)
+    num_clients = Client.query.filter_by(is_active=True).count() or 1
+    return render_template("platform_costs.html",
+                           costs=costs,
+                           total_dollars=total_cents / 100,
+                           per_client_dollars=(total_cents // num_clients) / 100,
+                           num_clients=num_clients)
+
+
+@dashboard_bp.route("/dashboard/platform-costs/delete/<int:cost_id>", methods=["POST"])
+@require_auth
+def delete_platform_cost(cost_id):
+    pc = PlatformCost.query.get_or_404(cost_id)
+    pc.is_active = False
+    db.session.commit()
+    flash(f"Removed '{pc.name}'", "success")
+    return redirect(url_for("dashboard.platform_costs_page"))
 
 
 @dashboard_bp.route("/dashboard/invoices")

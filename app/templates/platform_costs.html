@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Platform Costs — Concord AI{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-gray-800 mb-6">Platform Costs</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="bg-white rounded-xl shadow p-5">
+        <div class="text-sm text-gray-500">Total Monthly</div>
+        <div class="text-2xl font-bold text-gray-800">${{ "%.2f"|format(total_dollars) }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow p-5">
+        <div class="text-sm text-gray-500">Active Clients</div>
+        <div class="text-2xl font-bold text-gray-800">{{ num_clients }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow p-5">
+        <div class="text-sm text-gray-500">Cost Per Client</div>
+        <div class="text-2xl font-bold text-indigo-600">${{ "%.2f"|format(per_client_dollars) }}</div>
+        <div class="text-xs text-gray-400">Split evenly across clients</div>
+    </div>
+</div>
+
+<!-- Current costs -->
+{% if costs %}
+<div class="bg-white rounded-xl shadow overflow-hidden mb-8">
+    <table class="w-full">
+        <thead class="bg-gray-50 border-b">
+            <tr>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Service</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Monthly Cost</th>
+                <th class="text-left px-6 py-3 text-sm font-medium text-gray-500"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for cost in costs %}
+            <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">{{ cost.name }}</td>
+                <td class="px-6 py-4 text-gray-700">${{ "%.2f"|format(cost.monthly_cost_cents / 100) }}/mo</td>
+                <td class="px-6 py-4 text-right">
+                    <form action="/dashboard/platform-costs/delete/{{ cost.id }}" method="POST" class="inline">
+                        <button type="submit" class="text-red-500 hover:text-red-700 text-sm">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="bg-white rounded-xl shadow p-8 text-center text-gray-500 mb-8">
+    No platform costs added yet.
+</div>
+{% endif %}
+
+<!-- Add new cost -->
+<h2 class="text-lg font-semibold text-gray-800 mb-3">Add Platform Cost</h2>
+<form method="POST" class="bg-white rounded-xl shadow p-6 max-w-lg">
+    <div class="space-y-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Service Name</label>
+            <input type="text" name="name" required
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                   placeholder="e.g. Railway, Resend">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Cost ($)</label>
+            <input type="number" name="monthly_cost" step="0.01" value="0" required
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <button type="submit"
+                class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 font-medium">
+            Add Cost
+        </button>
+    </div>
+</form>
+{% endblock %}
